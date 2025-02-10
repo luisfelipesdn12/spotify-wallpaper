@@ -6,7 +6,7 @@ from PIL import Image
 
 load_dotenv()
 
-TIME_RANGE = 'medium_term'
+TIME_RANGE = os.getenv('TIME_RANGE')
 IMAGES_DIR = 'images'
 WALLPAPERS_DIR = 'wallpapers'
 
