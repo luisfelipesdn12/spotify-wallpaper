@@ -1,12 +1,14 @@
-import spotipy, os, requests, shutil
+import spotipy, os, requests, shutil, datetime
 from spotipy.oauth2 import SpotifyOAuth
 from colorama import Fore, Style
 from dotenv import load_dotenv
+from PIL import Image
 
 load_dotenv()
 
-TIME_RANGE = 'short_term'
+TIME_RANGE = 'medium_term'
 IMAGES_DIR = 'images'
+WALLPAPERS_DIR = 'wallpapers'
 
 def colorize(text, color):
     return f"{color}{text}{Style.RESET_ALL}"
@@ -35,7 +37,7 @@ def get_unique_images():
     for idx, artist in enumerate(top_artists['items'], 1):
         print(f"{idx}. {colorize(artist['name'], Fore.CYAN)}")
         print(artist["images"][0]["url"])
-        unique_images.add(artist["images"][0]["url"])
+        # unique_images.add(artist["images"][0]["url"])
 
     top_tracks = sp.current_user_top_tracks(limit=5, time_range=TIME_RANGE)
     print(colorize("\nTop 5 Songs:", Fore.MAGENTA))
@@ -90,11 +92,35 @@ def download_images(images):
         img_data = requests.get(image_url).content
         with open(f"{IMAGES_DIR}/{image_url.split('/')[-1]}.jpg", 'wb+') as handler:
             handler.write(img_data)
+            
+def create_wallpaper():
+    base_img = Image.open('base.png').convert('RGBA')
+    album_covers = [Image.open(f"{IMAGES_DIR}/{image}").convert('RGBA') for image in os.listdir(IMAGES_DIR)]
+    album_size = int(base_img.height / 4);
+
+    i = 0
+    for album_cover in album_covers:
+        album_cover = album_cover.resize((album_size, album_size))
+        offset = ((base_img.width - album_cover.width) // 2, (base_img.height - album_cover.height) // 2)
+        base_img.paste(album_cover, (
+            (album_size * i) + (20 * i) + 100 if i > 0 else 100,
+            (offset[1]) + (40 if i % 2 else -40),
+        ))
+        i += 1
+
+    base_img.show()
+
+    if not os.path.exists(WALLPAPERS_DIR):
+        os.makedirs(WALLPAPERS_DIR)
+
+    base_img.save(f'{WALLPAPERS_DIR}/wallpaper_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.png')
+    base_img.save('wallpaper.png')
 
 def main():
     unique_images = get_unique_images()
     clean_images_dir()
     download_images(unique_images)
+    create_wallpaper()
 
 if __name__ == "__main__":
     main()
