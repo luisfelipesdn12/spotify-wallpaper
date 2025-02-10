@@ -95,32 +95,49 @@ def download_images(images):
             
 def create_wallpaper():
     base_img = Image.open('base.png').convert('RGBA')
+    base_img_light = Image.open('base-light.png').convert('RGBA')
     album_covers = [Image.open(f"{IMAGES_DIR}/{image}").convert('RGBA') for image in os.listdir(IMAGES_DIR)]
     album_size = int(base_img.height / 4);
 
     i = 0
     for album_cover in album_covers:
         album_cover = album_cover.resize((album_size, album_size))
-        offset = ((base_img.width - album_cover.width) // 2, (base_img.height - album_cover.height) // 2)
-        base_img.paste(album_cover, (
+        center_offset = ((base_img.width - album_cover.width) // 2, (base_img.height - album_cover.height) // 2)
+        offset = (
             (album_size * i) + (20 * i) + 100 if i > 0 else 100,
-            (offset[1]) + (40 if i % 2 else -40),
-        ))
-        i += 1
+            (center_offset[1]) + (40 if i % 2 else -40),
+        )
 
-    base_img.show()
+        base_img.paste(album_cover, offset)
+        base_img_light.paste(album_cover, offset)
+        i += 1
 
     if not os.path.exists(WALLPAPERS_DIR):
         os.makedirs(WALLPAPERS_DIR)
 
     base_img.save(f'{WALLPAPERS_DIR}/wallpaper_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.png')
+    base_img_light.save(f'{WALLPAPERS_DIR}/wallpaper_light_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.png')
     base_img.save('wallpaper.png')
+    base_img_light.save('wallpaper_light.png')
+
+def set_wallpaper():
+    try:
+        from PyWallpaper import change_wallpaper
+        change_wallpaper('wallpaper.png')
+    except Exception as e:
+        os.system(
+            f'gsettings set org.gnome.desktop.background picture-uri-dark "file://{os.path.abspath("wallpaper.png")}"'
+        )
+        os.system(
+            f'gsettings set org.gnome.desktop.background picture-uri "file://{os.path.abspath("wallpaper_light.png")}"'
+        )
 
 def main():
     unique_images = get_unique_images()
     clean_images_dir()
     download_images(unique_images)
     create_wallpaper()
+    set_wallpaper()
 
 if __name__ == "__main__":
     main()
