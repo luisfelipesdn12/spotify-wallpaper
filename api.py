@@ -26,27 +26,6 @@ def get_unique_images():
 
     unique_images = set()
 
-    now_playing = sp.current_playback()
-    if now_playing and now_playing['is_playing']:
-        track_name = now_playing['item']['name']
-        artists = ', '.join([artist['name'] for artist in now_playing['item']['artists']])
-        print(colorize(f"\nNow Playing: {track_name} - {artists}", Fore.MAGENTA))
-
-    top_artists = sp.current_user_top_artists(limit=5, time_range=TIME_RANGE)
-    print(colorize("\nTop 5 Artists:", Fore.MAGENTA))
-    for idx, artist in enumerate(top_artists['items'], 1):
-        print(f"{idx}. {colorize(artist['name'], Fore.CYAN)}")
-        print(artist["images"][0]["url"])
-        # unique_images.add(artist["images"][0]["url"])
-
-    top_tracks = sp.current_user_top_tracks(limit=5, time_range=TIME_RANGE)
-    print(colorize("\nTop 5 Songs:", Fore.MAGENTA))
-    for idx, song in enumerate(top_tracks['items'], 1):
-        artists = ', '.join([artist['name'] for artist in song['artists']])
-        print(f"{idx}. {colorize(song['name'], Fore.CYAN)} - {colorize(artists, Fore.GREEN)}")
-        print(song['album']['images'][0]['url'])
-        unique_images.add(song['album']['images'][0]['url'])
-
     top_tracks = sp.current_user_top_tracks(limit=50, time_range=TIME_RANGE)
 
     # Extract unique albums from top tracks
@@ -63,20 +42,11 @@ def get_unique_images():
 
     # Print top 5 unique albums
     print(colorize("\nTop 5 Albums:", Fore.MAGENTA))
-    for idx, album in enumerate(list(unique_albums.values())[:5], 1):
+    for idx, album in enumerate(list(unique_albums.values())[:6], 1):
         print(f"{idx}. {colorize(album['name'], Fore.CYAN)} - {colorize(album['artists'], Fore.GREEN)}")
         if album['image_url']:
             print(album['image_url'])
             unique_images.add(album['image_url'])
-
-
-    recently_played = sp.current_user_recently_played(limit=5)
-    print(colorize("\nTop 5 Recently Played Songs:", Fore.MAGENTA))
-    for idx, track in enumerate(recently_played['items'], 1):
-        artists = ', '.join([artist['name'] for artist in track['track']['artists']])
-        print(f"{idx}. {colorize(track['track']['name'], Fore.CYAN)} - {colorize(artists, Fore.GREEN)}")
-        print(track["track"]["album"]["images"][0]["url"])
-        unique_images.add(track["track"]["album"]["images"][0]["url"])
 
     return unique_images
 
@@ -100,7 +70,7 @@ def create_wallpaper():
     album_size = int(base_img.height / 4);
 
     i = 0
-    for album_cover in album_covers:
+    for album_cover in album_covers[:6]:
         album_cover = album_cover.resize((album_size, album_size))
         center_offset = ((base_img.width - album_cover.width) // 2, (base_img.height - album_cover.height) // 2)
         offset = (
