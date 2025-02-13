@@ -1,0 +1,1 @@
+cd /home/luis/github.com/luisfelipesdn12/spotify-wallpaper && .venv/bin/python3 api.py >> cron.log 2>&1

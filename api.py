@@ -1,17 +1,15 @@
 import spotipy, os, requests, shutil, datetime
 from spotipy.oauth2 import SpotifyOAuth
-from colorama import Fore, Style
 from dotenv import load_dotenv
 from PIL import Image
 
 load_dotenv()
 
-TIME_RANGE = os.getenv('TIME_RANGE')
+SPOTIFY_TIME_RANGE = os.getenv('SPOTIFY_TIME_RANGE')
 IMAGES_DIR = 'images'
 WALLPAPERS_DIR = 'wallpapers'
 
-def colorize(text, color):
-    return f"{color}{text}{Style.RESET_ALL}"
+print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: {SPOTIFY_TIME_RANGE} time range")
 
 def get_unique_images():
     CLIENT_ID = os.getenv('CLIENT_ID')
@@ -26,7 +24,7 @@ def get_unique_images():
 
     unique_images = set()
 
-    top_tracks = sp.current_user_top_tracks(limit=50, time_range=TIME_RANGE)
+    top_tracks = sp.current_user_top_tracks(limit=50, time_range=SPOTIFY_TIME_RANGE)
 
     # Extract unique albums from top tracks
     unique_albums = {}
@@ -41,9 +39,9 @@ def get_unique_images():
             }
 
     # Print top 5 unique albums
-    print(colorize("\nTop 5 Albums:", Fore.MAGENTA))
+    print("\nTop 5 Albums:")
     for idx, album in enumerate(list(unique_albums.values())[:6], 1):
-        print(f"{idx}. {colorize(album['name'], Fore.CYAN)} - {colorize(album['artists'], Fore.GREEN)}")
+        print(f"{idx}. {album['name']} - {album['artists']}")
         if album['image_url']:
             print(album['image_url'])
             unique_images.add(album['image_url'])
@@ -62,7 +60,7 @@ def download_images(images):
         img_data = requests.get(image_url).content
         with open(f"{IMAGES_DIR}/{image_url.split('/')[-1]}.jpg", 'wb+') as handler:
             handler.write(img_data)
-            
+
 def create_wallpaper():
     base_img = Image.open('base.png').convert('RGBA')
     base_img_light = Image.open('base-light.png').convert('RGBA')
