@@ -2,6 +2,7 @@ import spotipy, os, requests, shutil, datetime
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
 from PIL import Image
+from plyer import notification
 
 load_dotenv()
 
@@ -35,8 +36,14 @@ def get_unique_images():
             unique_albums[album_id] = {
                 'name': album['name'],
                 'artists': ', '.join([artist['name'] for artist in album['artists']]),
-                'image_url': album['images'][0]['url'] if album['images'] else None
+                'image_url': album['images'][0]['url'] if album['images'] else None,
+                'count': 1
             }
+        else:
+            unique_albums[album_id]['count'] += 1
+            
+    # Sort unique albums by count
+    unique_albums = {k: v for k, v in sorted(unique_albums.items(), key=lambda item: item[1]['count'], reverse=True)}
 
     # Print top 5 unique albums
     print("\nTop 5 Albums:")
@@ -106,6 +113,10 @@ def main():
     download_images(unique_images)
     create_wallpaper()
     set_wallpaper()
+    notification.notify(
+        title="Spotify Wallpaper",
+        message="Wallpaper updated",
+    )
 
 if __name__ == "__main__":
     main()
