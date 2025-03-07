@@ -23,7 +23,7 @@ def get_unique_images():
                                                    redirect_uri=REDIRECT_URI,
                                                    scope=SCOPE))
 
-    unique_images = set()
+    unique_images = []
 
     top_tracks = sp.current_user_top_tracks(limit=50, time_range=SPOTIFY_TIME_RANGE)
 
@@ -47,11 +47,12 @@ def get_unique_images():
 
     # Print top 5 unique albums
     print("\nTop 5 Albums:")
-    for idx, album in enumerate(list(unique_albums.values())[:6], 1):
+    for idx, unique_album in enumerate(sorted(unique_albums.items(), key=lambda item: item[1]['count'], reverse=True)[:6], 1):
+        album = unique_album[1]
         print(f"{idx}. {album['name']} - {album['artists']}")
         if album['image_url']:
             print(album['image_url'])
-            unique_images.add(album['image_url'])
+            unique_images.append(album['image_url'])
 
     return unique_images
 
@@ -62,16 +63,16 @@ def clean_images_dir():
 def download_images(images):
     if not os.path.exists(IMAGES_DIR):
         os.makedirs(IMAGES_DIR)
-    
-    for image_url in images:
+
+    for i, image_url in enumerate(images, 1):
         img_data = requests.get(image_url).content
-        with open(f"{IMAGES_DIR}/{image_url.split('/')[-1]}.jpg", 'wb+') as handler:
+        with open(f"{IMAGES_DIR}/{i}_{image_url.split('/')[-1]}.jpg", 'wb+') as handler:
             handler.write(img_data)
 
 def create_wallpaper():
     base_img = Image.open('base.png').convert('RGBA')
     base_img_light = Image.open('base-light.png').convert('RGBA')
-    album_covers = [Image.open(f"{IMAGES_DIR}/{image}").convert('RGBA') for image in os.listdir(IMAGES_DIR)]
+    album_covers = [Image.open(f"{IMAGES_DIR}/{image}").convert('RGBA') for image in sorted(os.listdir(IMAGES_DIR))]
     album_size = int(base_img.height / 4);
 
     i = 0
